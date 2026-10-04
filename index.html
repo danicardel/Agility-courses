@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#1a1a2e" />
+  <meta name="description" content="App privada para gestionar planos de agility" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Agility Planos</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <button id="btn-menu" class="btn-icon" aria-label="Menú">☰</button>
+      <h1 class="app-title">Agility Planos</h1>
+    </div>
+    <div class="header-right">
+      <span id="drive-status" class="status-badge offline">Drive: no conectado</span>
+    </div>
+  </header>
+
+  <!-- Sidebar / Navegación -->
+  <nav id="sidebar" class="sidebar">
+    <div class="sidebar-header">
+      <span>Menú</span>
+      <button id="btn-close-sidebar" class="btn-icon">✕</button>
+    </div>
+    <ul class="nav-list">
+      <li><button class="nav-item active" data-view="inbox">📥 Inbox</button></li>
+      <li><button class="nav-item" data-view="revisar">🔍 Revisar</button></li>
+      <li><button class="nav-item" data-view="clasificadas">✅ Clasificadas</button></li>
+      <li><button class="nav-item" data-view="archivo">📁 Archivo</button></li>
+      <li class="nav-divider"></li>
+      <li><button class="nav-item" data-view="config">⚙️ Configuración</button></li>
+    </ul>
+  </nav>
+  <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+  <!-- Main content -->
+  <main id="main" class="main">
+    <!-- Vista: Inbox -->
+    <section id="view-inbox" class="view active">
+      <div class="view-header">
+        <h2>Inbox</h2>
+        <p class="view-subtitle">Fotos nuevas pendientes de procesar</p>
+      </div>
+      <div class="actions-bar">
+        <button id="btn-import" class="btn btn-primary">
+          📷 Importar fotos
+        </button>
+        <button id="btn-refresh-inbox" class="btn btn-secondary">
+          🔄 Actualizar
+        </button>
+      </div>
+      <div id="inbox-list" class="card-grid">
+        <div class="empty-state">
+          <p>No hay fotos en Inbox</p>
+          <p class="hint">Pulsa “Importar fotos” o súbelas a la carpeta Inbox de Drive</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Vista: Revisar (cola de validación) -->
+    <section id="view-revisar" class="view">
+      <div class="view-header">
+        <h2>Revisar</h2>
+        <p class="view-subtitle">Valida y corrige los datos detectados</p>
+      </div>
+      <div id="revisar-container" class="revisar-container">
+        <div class="empty-state">
+          <p>No hay planos pendientes de revisión</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Vista: Clasificadas -->
+    <section id="view-clasificadas" class="view">
+      <div class="view-header">
+        <h2>Clasificadas</h2>
+        <p class="view-subtitle">Planos ya validados y organizados</p>
+      </div>
+      <div class="filters-bar">
+        <select id="filter-tipo">
+          <option value="">Tipo: todos</option>
+          <option value="Agility">Agility</option>
+          <option value="Jumping">Jumping</option>
+        </select>
+        <select id="filter-nivel">
+          <option value="">Nivel: todos</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="entrenamiento">Entrenamiento</option>
+          <option value="especial">Especial</option>
+        </select>
+        <select id="filter-altura">
+          <option value="">Altura: todas</option>
+          <option value="XS">XS</option>
+          <option value="S">S</option>
+          <option value="M">M</option>
+          <option value="I">I</option>
+          <option value="L">L</option>
+        </select>
+      </div>
+      <div id="clasificadas-list" class="card-grid">
+        <div class="empty-state">
+          <p>Aún no hay planos clasificados</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Vista: Archivo -->
+    <section id="view-archivo" class="view">
+      <div class="view-header">
+        <h2>Archivo</h2>
+        <p class="view-subtitle">Planos antiguos o descartados</p>
+      </div>
+      <div id="archivo-list" class="card-grid">
+        <div class="empty-state">
+          <p>Archivo vacío</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Vista: Configuración -->
+    <section id="view-config" class="view">
+      <div class="view-header">
+        <h2>Configuración</h2>
+      </div>
+      <div class="config-section">
+        <h3>Google Drive</h3>
+        <p class="hint">Conecta tu cuenta secundaria para sincronizar con la carpeta AGILITY-COURSES/Agility-Planos</p>
+        <button id="btn-connect-drive" class="btn btn-primary">Conectar Google Drive</button>
+        <button id="btn-disconnect-drive" class="btn btn-secondary" style="display:none;">Desconectar</button>
+        <p id="drive-info" class="status-text"></p>
+      </div>
+      <div class="config-section">
+        <h3>Procesamiento</h3>
+        <label class="checkbox-label">
+          <input type="checkbox" id="opt-auto-process" checked />
+          Procesar automáticamente al importar
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="opt-cloud-fallback" />
+          Usar cloud vision como respaldo (opcional)
+        </label>
+      </div>
+      <div class="config-section">
+        <h3>Acerca de</h3>
+        <p class="hint">Agility Planos · Uso personal privado · v0.1</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal de validación (detalle de un plano) -->
+  <div id="modal-validacion" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Validar plano</h3>
+        <button id="btn-close-modal" class="btn-icon">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="preview-area">
+          <img id="preview-img" src="" alt="Plano" />
+        </div>
+        <form id="form-validacion" class="form-validacion">
+          <div class="form-row">
+            <label>Evento</label>
+            <input type="text" id="field-evento" placeholder="Nombre del evento" />
+          </div>
+          <div class="form-row">
+            <label>Localización</label>
+            <input type="text" id="field-localizacion" placeholder="Ciudad / club" />
+          </div>
+          <div class="form-row">
+            <label>Fecha</label>
+            <input type="date" id="field-fecha" />
+          </div>
+          <div class="form-row two-cols">
+            <div>
+              <label>Tipo</label>
+              <select id="field-tipo">
+                <option value="Agility">Agility</option>
+                <option value="Jumping">Jumping</option>
+              </select>
+            </div>
+            <div>
+              <label>Nivel</label>
+              <select id="field-nivel">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="entrenamiento">Entrenamiento</option>
+                <option value="especial">Especial</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row two-cols">
+            <div>
+              <label>Altura</label>
+              <select id="field-altura">
+                <option value="XS">XS</option>
+                <option value="S">S</option>
+                <option value="M">M</option>
+                <option value="I">I</option>
+                <option value="L">L</option>
+              </select>
+            </div>
+            <div>
+              <label>Juez</label>
+              <input type="text" id="field-juez" placeholder="Nombre del juez" />
+            </div>
+          </div>
+          <div class="form-row two-cols">
+            <div>
+              <label>Obstáculos</label>
+              <input type="number" id="field-obstaculos" min="0" />
+            </div>
+            <div>
+              <label>Tamaño ring</label>
+              <input type="text" id="field-ring" placeholder="ej. 30x40 m" />
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="button" id="btn-descartar" class="btn btn-danger">Descartar</button>
+            <button type="button" id="btn-guardar" class="btn btn-primary">Guardar y clasificar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input oculto para importar archivos -->
+  <input type="file" id="file-input" accept="image/*" multiple hidden />
+
+  <!-- Scripts -->
+  <script src="js/app.js"></script>
+</body>
+</html>
